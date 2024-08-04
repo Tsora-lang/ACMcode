@@ -1,0 +1,107 @@
+//线段树
+//区间加和乘
+//先加后乘
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int N = 4e5 + 5;
+int n, m, mod;
+inline ll ls(ll p) {return p << 1;}
+inline ll rs(ll p) {return p << 1 | 1;}
+ll sum[N], tag[N], tag2[N], arr[N];
+
+inline void lazy(ll l, ll r, ll p, ll k) {
+	tag[p] = (tag[p] + k) % mod;
+	sum[p] = (sum[p] + k * (r - l + 1)) % mod;
+}
+inline void lazy2(ll l, ll r, ll p, ll k) {
+	tag2[p] = (tag2[p] * k) % mod;
+	tag[p] = (tag[p] * k) % mod;
+	sum[p] = (sum[p] * k) % mod;
+}
+inline void pushup(ll p) {
+	sum[p] = (sum[ls(p)] + sum[rs(p)]) % mod;
+}
+inline void pushdown(ll l, ll r, ll p) {
+	ll mid = ((l + r) >> 1);
+	lazy(l, mid, ls(p), tag[p]);
+	lazy(mid + 1, r, rs(p), tag[p]);
+	tag[p] = 0;
+}
+inline void pushdown2(ll l, ll r, ll p) {
+	ll mid = ((l + r) >> 1);
+	lazy2(l, mid, ls(p), tag2[p]);
+	lazy2(mid + 1, r, rs(p), tag2[p]);
+	tag2[p] = 1;
+}
+void build(ll l, ll r, ll p) {
+	tag2[p] = 1;
+	if (l == r) {
+		sum[p] = arr[l];
+		return;
+	}
+	ll mid = ((l + r) >> 1);
+	build(l, mid, ls(p));
+	build(mid + 1, r, rs(p));
+	pushup(p);
+}
+void jia(ll L, ll R, ll k, ll l, ll r, ll p) {
+	if (L <= l && r <= R) {
+		lazy(l, r, p, k);
+		return;
+	}
+	pushdown2(l, r, p);
+	pushdown(l, r, p);
+	ll mid = ((l + r) >> 1);
+	if (L <= mid)jia(L, R, k, l, mid, ls(p));
+	if (R > mid)jia(L, R, k, mid + 1, r, rs(p));
+	pushup(p);
+}
+void cheng(ll L, ll R, ll k, ll l, ll r, ll p) {
+	if (L <= l && r <= R) {
+		lazy2(l, r, p, k);
+		return;
+	}
+	pushdown2(l, r, p);
+	pushdown(l, r, p);
+	ll mid = ((l + r) >> 1);
+	if (L <= mid)cheng(L, R, k, l, mid, ls(p));
+	if (R > mid)cheng(L, R, k, mid + 1, r, rs(p));
+	pushup(p);
+}
+ll query(ll L, ll R, ll l, ll r, ll p) {
+	if (L <= l && r <= R) {
+		return sum[p];
+	}
+	pushdown2(l, r, p);
+	pushdown(l, r, p);
+	ll mid = ((l + r) >> 1), ans = 0;
+	if (L <= mid)ans = (ans + query(L, R, l, mid, ls(p))) % mod;
+	if (R > mid)ans = (ans + query(L, R, mid + 1, r, rs(p))) % mod;
+	return ans;
+}
+
+int main() {
+	cin >> n >> m >> mod;
+	for (int i = 1; i <= n; i++)cin >> arr[i];
+	build(1, n, 1);
+	while (m--) {
+		int cho;
+		cin >> cho;
+		if (cho == 1) {
+			ll x, y, k;
+			cin >> x >> y >> k;
+			cheng(x, y, k, 1, n, 1);
+		}
+		else if (cho == 2) {
+			ll x, y, k;
+			cin >> x >> y >> k;
+			jia(x, y, k, 1, n, 1);
+		} else {
+			ll x, y;
+			cin >> x >> y;
+			cout << query(x, y, 1, n, 1) << endl;
+		}
+	}
+}

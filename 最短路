@@ -24,6 +24,7 @@ void spfa(int zb) {
 }
 
 //判断有无负环
+//应用：差分约束
 int dis[N], vis[N], ci[N];
 bool spfa(int zb) {
 	fill(dis, dis + n + 5, inf);

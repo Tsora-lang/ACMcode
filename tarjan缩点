@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int N = 1e4 + 5, M = 1e5 + 5;
+int n, m;
+
+struct Edge {
+	int from, to, next;
+	ll len;
+} e1[M], e2[M];
+
+int head[N], cnt;
+void add(int u, int v, ll t) {
+	e1[++cnt] = {u, v, head[u], t};
+	head[u] = cnt;
+}
+
+int h[N], cc;
+void add2(int u, int v, ll t) {
+	e2[++cc] = {u, v, h[u], t};
+	h[u] = cc;
+}
+
+int w[N], dfn[N], low[N], vis[N], sta[N], sd[N], tim, top;
+
+void tarjan(int x) {
+	dfn[x] = low[x] = ++tim;
+	vis[x] = 1;
+	sta[++top] = x;
+	for (int i = head[x]; i; i = e1[i].next) {
+		if (!dfn[e1[i].to]) {
+			tarjan(e1[i].to);
+			low[x] = min(low[x], low[e1[i].to]);
+		} else if (vis[e1[i].to]) {
+			low[x] = min(low[x], low[e1[i].to]);
+		}
+	}
+	if (dfn[x] == low[x]) {
+		int y;
+		while (1) {
+			y = sta[top--];
+			sd[y] = x;
+			vis[y] = 0;
+			if (x == y)break;
+			w[x] += w[y];
+		}
+	}
+}
+
+int in[N], ww[N];
+int topo() {
+	queue<int> q;
+	for (int i = 1; i <= n; i++) {
+		if (!in[i] && sd[i] == i) {
+			q.push(i);
+			ww[i] = w[i];
+		}
+	}
+	int ans = 0;
+	while (!q.empty()) {
+		int tmp = q.front();
+		q.pop();
+		for (int i = h[tmp]; i; i = e2[i].next) {
+			int y = e2[i].to;
+			ww[y] = max(ww[y], ww[tmp] + w[y]);
+			if (--in[y] == 0)q.push(y);
+		}
+	}
+	for (int i = 1; i <= n; i++)ans = max(ans, ww[i]);
+	return ans;
+}
+
+int main() {
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) {
+		cin >> w[i];
+	}
+	for (int i = 1; i <= m; i++) {
+		int u, v;
+		cin >> u >> v;
+		add(u, v, 0);
+	}
+	for (int i = 1; i <= n; i++) {
+		if (!dfn[i])tarjan(i);
+	}
+	for (int i = 1; i <= m; i++) {
+		int x = sd[e1[i].from], y = sd[e1[i].to];
+		if (x != y) {
+			add2(x, y, 0);
+			in[y]++;
+		}
+	}
+	cout << topo();
+}

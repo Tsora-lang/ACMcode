@@ -1,0 +1,23 @@
+int dis[N], vis[N];
+void spfa(int zb) {
+	fill(dis, dis + n + 5, inf);
+	vis[zb] = 1;
+	dis[zb] = 0;
+	queue<int> q;
+	q.push(zb);
+	while (!q.empty()) {
+		int x = q.front();
+		q.pop();
+		vis[x] = 0;
+		for (int i = head[x]; i; i = e1[i].next) {
+			int y = e1[i].to;
+			if (dis[y] > dis[x] + e1[i].len) {
+				dis[y] = dis[x] + e1[i].len;
+				if (!vis[y]) {
+					q.push(y);
+					vis[y] = 1;
+				}
+			}
+		}
+	}
+}
